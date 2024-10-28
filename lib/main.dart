@@ -59,16 +59,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _controller.dispose(); // Dispose of the animation controller
     super.dispose();
   }
-
   // Function to get device ID and check user status
   Future<void> _getDeviceIdAndCheckStatus() async {
-
     // String? deviceId = await PlatformDeviceId.getDeviceId;
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
     print('Running on ${androidInfo.device}');  // e.g. "Moto G (4)"
-
-
 
     print('++++++++++*********************************++++');
     // String deviceId = await getDeviceId(); // Fetch the device ID

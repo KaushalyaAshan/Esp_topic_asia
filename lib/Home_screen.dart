@@ -108,8 +108,7 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-
-  // Build the category button with a professional design
+  //Build the category button with a professional design
   Widget _buildCategoryButton(BuildContext context, String title, String imagePath, double width, Widget screen) {
     return GestureDetector(
       onTap: () {

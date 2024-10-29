@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Home_screen.dart';
-import 'dart:io'; // For platform checks
-import 'package:http/http.dart' as http; // For making HTTP requests
+import 'package:android_id/android_id.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert'; // For JSON encoding and decoding
-import 'package:device_info_plus/device_info_plus.dart'; // To get device ID
+
 void main() {
   runApp(MyApp());
 }
@@ -36,16 +36,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+
     // Initialize the animation controller
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 5),
     );
 
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
 
-    // Get device ID and post to API
+    // Get device ID and check user status
     _getDeviceIdAndCheckStatus();
   }
 
@@ -57,60 +58,48 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   // Function to get device ID and check user status
   Future<void> _getDeviceIdAndCheckStatus() async {
-    String? deviceId = await _getDeviceId();
-    if (deviceId != null) {
-      setState(() {
-        _deviceId = deviceId;
-      });
-      await _postDeviceIdAndNavigate(deviceId);
+    const androidIdPlugin = AndroidId();
+    final String? androidId = await androidIdPlugin.getId();
+
+    setState(() {
+      _deviceId = androidId; // Set the device ID state
+    });
+
+    if (androidId != null) {
+      // Post device ID to API after retrieval
+      await _postDeviceIdAndNavigate(androidId);
     } else {
-      print('Error: Unable to retrieve device ID');
+      print('Failed to retrieve Android ID');
+      // Optionally handle the case where the ID retrieval fails
     }
-    // Navigate to HomeScreen after a delay
-    _navigateToHome();
   }
 
-  // Function to get device ID based on platform (Android or iOS)
-  Future<String?> _getDeviceId() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    try {
-      if (Platform.isAndroid) {
-        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        return androidInfo.id; // Unique device ID for Android
-      } else if (Platform.isIOS) {
-        IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-        return iosInfo.identifierForVendor; // Unique device ID for iOS
-      }
-    } catch (e) {
-      print('Error fetching device ID: $e');
-    }
-    return null;
-  }
-
-  // Function to make the API call and navigate based on the response
-  Future<void> _postDeviceIdAndNavigate(String deviceId) async {
+  Future<void> _postDeviceIdAndNavigate(String androidId) async {
     final url = Uri.parse('https://epstopik.asia/api/user-status-check');
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'device_id': deviceId}),
+        body: json.encode({"Device_id": androidId}),
       );
+
+      print('Response: ${response.body}');
+      print('Android ID: $androidId');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
         if (data['status'] == 'success') {
-          // Convert user_id to string to avoid type issues
-          String userId = data['user_id'].toString();
+          // Assuming 'user_id' field now contains the actual device ID
+          String androidDeviceId = data['user_id'].toString();
 
-          // Save user_id in SharedPreferences
+          // Save device_id in SharedPreferences
           SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString('user_id', userId);
+          await prefs.setString("Device_id", androidDeviceId);
 
-          // Retrieve and print the stored user_id for confirmation
-          String? storedUserId = prefs.getString('user_id');
-          print('Stored user ID: $storedUserId'); // Print user ID for confirmation
+          // Retrieve and print the stored device_id for confirmation
+          String? storedDeviceId = prefs.getString("Device_id");
+          print('Stored User: $storedDeviceId'); // Confirm device ID storage
 
           // Navigate to HomeScreen
           Navigator.pushReplacement(
@@ -119,6 +108,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           );
         } else {
           print('User is inactive or status is not success.');
+          // Optionally navigate to a different screen or show an error
         }
       } else {
         print('Failed to check user status. Status code: ${response.statusCode}');
@@ -128,14 +118,49 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     }
   }
 
-  // Navigate to HomeScreen after a delay
-  void _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 5));
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
-    );
-  }
+  // Function to make the API call and navigate based on the response
+//   Future<void> _postDeviceIdAndNavigate(String androidId) async {
+//     final url = Uri.parse('https://epstopik.asia/api/user-status-check');
+//     try {
+//       final response = await http.post(
+//         url,
+//         headers: {'Content-Type': 'application/json'},
+//         body: json.encode({'device_id': androidId}),
+//       );
+//       print('******************************************************************$response');
+//       print('******************************************************************$androidId');
+//       if (response.statusCode == 200) {
+//         final data = json.decode(response.body);
+//         print('****************************************************8888888888888888888888888888888888888888888$data');
+//         if (data['status'] == 'success') {
+//           // Convert user_id to string to avoid type issues
+//           String userId = data['user_id'].toString();
+//
+//           // Save user_id in SharedPreferences
+//           SharedPreferences prefs = await SharedPreferences.getInstance();
+//           await prefs.setString('user_id', userId);
+//
+//           // Retrieve and print the stored user_id for confirmation
+//           String? storedUserId = prefs.getString('user_id');
+//           print('Stored user ID: $storedUserId'); // Print user ID for confirmation
+//
+//           // Navigate to HomeScreen
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(builder: (context) => HomeScreen()),
+//           );
+//         }
+//         else {
+//           print('User is inactive or status is not success.');
+//           // Optionally navigate to a different screen or show an error
+//         }
+//       } else {
+//         print('Failed to check user status. Status code: ${response.statusCode}');
+//       }
+//     } catch (e) {
+//       print('Error checking user status: $e');
+//     }
+//   }
 
   @override
   Widget build(BuildContext context) {

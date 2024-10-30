@@ -39,6 +39,7 @@ class _ConfirmationDialogScreenState extends State<ConfirmationDialogScreen> {
         final paperDetails = json.decode(response.body);
 
         if (paperDetails is List) {
+          print('00000000000asdfghjkkjhgfdssdfghjklkjhgfdssdfghjklkjhfdssdfghjklkjhgfdsasdfghjk');
           // Assuming the list contains the questions directly
           List<dynamic> paperQuestions = paperDetails;
           Navigator.push(
@@ -53,6 +54,7 @@ class _ConfirmationDialogScreenState extends State<ConfirmationDialogScreen> {
             ),
           );
         } else if (paperDetails is Map && paperDetails.containsKey('questions')) {
+          print('1234567asdfghjkkjhgfdssdfghjklkjhgfdssdfghjklkjhfdssdfghjklkjhgfdsasdfghjk');
           // If it’s a Map, access the 'questions' field directly
           List<dynamic> paperQuestions = paperDetails['questions'];
           Navigator.push(

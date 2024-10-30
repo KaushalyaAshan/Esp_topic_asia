@@ -196,3 +196,135 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
     );
   }
 }
+/*
+import 'package:flutter/material.dart';
+
+class Question {
+  final String questionText;
+  final List<Answer> answers;
+  final int correctAnswerIndex;
+  final String? questionImage;
+  final String? questionAudio;
+
+  Question({
+    required this.questionText,
+    required this.answers,
+    required this.correctAnswerIndex,
+    this.questionImage,
+    this.questionAudio,
+  });
+
+  factory Question.fromJson(Map<String, dynamic> json) {
+    return Question(
+      questionText: json['Questions_content'] ?? '',
+      correctAnswerIndex: int.parse(json['correct_answer']) - 1,
+      questionImage: json['image_url'],
+      questionAudio: json['audio_track'],
+      answers: (json['answers'] as List)
+          .map((answer) => Answer.fromJson(answer))
+          .toList(),
+    );
+  }
+}
+
+class Answer {
+  final String text;
+  final String? imageUrl;
+
+  Answer({required this.text, this.imageUrl});
+
+  factory Answer.fromJson(Map<String, dynamic> json) {
+    return Answer(
+      text: json['Answer'] ?? '',
+      imageUrl: json['Answer_image_url'],
+    );
+  }
+}
+
+class PaperDetailScreen extends StatefulWidget {
+  final String paperName;
+  final List<Question> questions;
+
+  PaperDetailScreen({required this.paperName, required this.questions});
+
+  @override
+  _PaperDetailScreenState createState() => _PaperDetailScreenState();
+}
+
+class _PaperDetailScreenState extends State<PaperDetailScreen> {
+  int currentQuestionIndex = 0;
+  int? selectedAnswerIndex;
+  List<int?> userAnswers = [];
+
+  void _nextQuestion() {
+    setState(() {
+      userAnswers.add(selectedAnswerIndex);
+      selectedAnswerIndex = null;
+
+      if (currentQuestionIndex < widget.questions.length - 1) {
+        currentQuestionIndex++;
+      } else {
+        _showReport();
+      }
+    });
+  }
+
+  void _showReport() {
+    // Show results or navigate to another screen
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Question currentQuestion = widget.questions[currentQuestionIndex];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.paperName),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text(
+              'Question ${currentQuestionIndex + 1}: ${currentQuestion.questionText}',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            if (currentQuestion.questionImage != null)
+              Image.network(currentQuestion.questionImage!),
+            if (currentQuestion.questionAudio != null)
+              IconButton(
+                icon: Icon(Icons.play_arrow),
+                onPressed: () {
+                  // Play audio functionality here
+                },
+              ),
+            ...currentQuestion.answers.asMap().entries.map((entry) {
+              int idx = entry.key;
+              Answer answer = entry.value;
+              return GestureDetector(
+                onTap: () => setState(() {
+                  selectedAnswerIndex = idx;
+                }),
+                child: Container(
+                  padding: EdgeInsets.all(12),
+                  margin: EdgeInsets.symmetric(vertical: 6),
+                  color: selectedAnswerIndex == idx ? Colors.blue : Colors.white,
+                  child: answer.imageUrl != null
+                      ? Image.network(answer.imageUrl!)
+                      : Text(answer.text),
+                ),
+              );
+            }).toList(),
+            ElevatedButton(
+              onPressed: selectedAnswerIndex == null ? null : _nextQuestion,
+              child: Text("Next"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+ */

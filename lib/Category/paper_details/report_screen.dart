@@ -16,6 +16,8 @@ class Question {
     required this.correctAnswerIndex,
     this.isImageAnswer = false,
   });
+
+  static fromJson(q) {}
 }// Report Screen
 class ReportScreen extends StatelessWidget {
   final List<Question> questions;

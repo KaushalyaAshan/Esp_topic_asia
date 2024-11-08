@@ -39,6 +39,7 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,6 +101,7 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
                     'assets/sample_paper.png', // Replace with actual image if available
                     '${paper['questions']} Questions',
                     'Duration: ${paper['mark']} Marks',
+                    paper['paper_id'].toString(), // Convert paperId to String here
                   );
                 },
               ),
@@ -110,7 +112,8 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
     );
   }
 
-  Widget _buildPaperRow(BuildContext context, String paperName, String imagePath, String questionCount, String duration) {
+  Widget _buildPaperRow(BuildContext context, String paperName,
+      String imagePath, String questionCount, String duration, String paperId) {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -119,7 +122,6 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           children: [
-            // Left column with image
             Expanded(
               flex: 1,
               child: Container(
@@ -146,7 +148,6 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            // Middle column with paper name and info
             Expanded(
               flex: 2,
               child: Column(
@@ -167,32 +168,36 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
                         children: [
                           Text(
                             questionCount,
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style: const TextStyle(fontSize: 12,
+                                color: Colors.grey),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             duration,
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style: const TextStyle(fontSize: 12,
+                                color: Colors.grey),
                           ),
                         ],
                       ),
                       const SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {
-                          // Show the dialog screen
+                          // Show the dialog screen and pass paperId
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
                               return ConfirmationDialogScreen(
                                 paperName: paperName,
                                 questionCount: questionCount,
-                                duration: duration, paperId: '',
+                                duration: duration,
+                                paperId: paperId, // Pass paperId here
                               );
                             },
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(horizontal: 10,
+                              vertical: 5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -200,7 +205,8 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
                           shadowColor: Colors.black.withOpacity(0.2),
                           backgroundColor: Colors.transparent,
                         ).copyWith(
-                          backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                          backgroundColor: MaterialStateProperty.resolveWith<
+                              Color>(
                                 (Set<MaterialState> states) {
                               if (states.contains(MaterialState.pressed)) {
                                 return Colors.blueAccent;

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../paper_details/paper_detail_screen.dart';
 
-class ConfirmationDialogScreen extends StatefulWidget {
+class ConfirmationDialogScreen extends StatelessWidget {
   final String paperName;
   final String questionCount;
   final String duration;
@@ -15,75 +13,19 @@ class ConfirmationDialogScreen extends StatefulWidget {
     required this.duration,
     required this.paperId,
     Key? key,
-  }) : super(key: key);
+  }) :
+        super(key: key);
 
-  @override
-  _ConfirmationDialogScreenState createState() => _ConfirmationDialogScreenState();
-}
-
-class _ConfirmationDialogScreenState extends State<ConfirmationDialogScreen> {
-  bool _isLoading = false;
-
-  Future<void> _fetchPaperDetails() async {
-    final url = Uri.parse('https://epstopik.asia/api/get-paper/11');//${widget.paperId}
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final response = await http.get(url);
-      print("Response status code: ${response.statusCode}");
-
-      if (response.statusCode == 200) {
-        final paperDetails = json.decode(response.body);
-
-        if (paperDetails is List) {
-          print('00000000000asdfghjkkjhgfdssdfghjklkjhgfdssdfghjklkjhfdssdfghjklkjhgfdsasdfghjk');
-          // Assuming the list contains the questions directly
-          List<dynamic> paperQuestions = paperDetails;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-
-              builder: (context) => PaperDetailScreen(
-                paperName: widget.paperName,
-                questions: paperQuestions.map((q) => Question.fromJson(q)).toList(),
-
-              ),
-            ),
-          );
-        } else if (paperDetails is Map && paperDetails.containsKey('questions')) {
-          print('1234567asdfghjkkjhgfdssdfghjklkjhgfdssdfghjklkjhfdssdfghjklkjhgfdsasdfghjk');
-          // If it’s a Map, access the 'questions' field directly
-          List<dynamic> paperQuestions = paperDetails['questions'];
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PaperDetailScreen(
-                paperName: widget.paperName,
-                questions: paperQuestions.map((q) => Question.fromJson(q)).toList(),
-              ),
-            ),
-          );
-        } else {
-          print('Error: Unexpected response format.');
-          throw Exception('Invalid response format');
-        }
-      } else {
-        print('Error response body: ${response.body}');
-        throw Exception('Failed to load paper details');
-      }
-    } catch (e) {
-      print('Error fetching paper details: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching paper details: ${e.toString()}')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  void _navigateToPaperDetailScreen(BuildContext context) {
+    // Navigate to PaperDetailScreen with only paperId
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaperDetailScreen(
+          paperId: paperId, // Pass only the paperId
+        ),
+      ),
+    );
   }
 
   @override
@@ -105,7 +47,7 @@ class _ConfirmationDialogScreenState extends State<ConfirmationDialogScreen> {
             ),
           ),
           content: Text(
-            "* Do you want to start the ${widget.paperName}? \n * You will have to complete  ${widget.questionCount} in ${widget.duration} ",
+            "* Do you want to start the $paperName? \n* You will have to complete $questionCount in $duration",
             style: const TextStyle(
               fontSize: 16,
               color: Colors.grey,
@@ -133,10 +75,8 @@ class _ConfirmationDialogScreenState extends State<ConfirmationDialogScreen> {
               ),
             ),
             TextButton(
-              onPressed: _isLoading
-                  ? null
-                  : () async {
-                await _fetchPaperDetails();
+              onPressed: () {
+                _navigateToPaperDetailScreen(context);
               },
               style: TextButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
@@ -145,9 +85,7 @@ class _ConfirmationDialogScreenState extends State<ConfirmationDialogScreen> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: _isLoading
-                  ? CircularProgressIndicator(color: Colors.white)
-                  : const Text(
+              child: const Text(
                 "Yes, Start",
                 style: TextStyle(
                   color: Colors.white,

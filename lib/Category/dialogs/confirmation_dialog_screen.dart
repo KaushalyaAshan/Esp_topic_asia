@@ -22,6 +22,7 @@ class ConfirmationDialogScreen extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => PaperDetailScreen(
+          paperName:paperName,
           paperId: paperId, // Pass only the paperId
         ),
       ),

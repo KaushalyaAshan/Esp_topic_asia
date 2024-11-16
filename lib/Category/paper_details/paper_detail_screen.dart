@@ -1,18 +1,39 @@
+import 'package:asp_topic_asia/Category/paper_details/report_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 
 class PaperDetailScreen extends StatefulWidget {
   final String paperId;
+  final String paperName;
 
   const PaperDetailScreen({
     required this.paperId,
+    required this.paperName,
     Key? key,
   }) : super(key: key);
 
   @override
   _PaperDetailScreenState createState() => _PaperDetailScreenState();
+}
+
+extension ListFiller<T> on List<T?> {
+  void setOrFill(int index, T value) {
+    if (index >= this.length) {
+      this.addAll(List<T?>.filled(index - this.length + 1, null));
+    }
+    this[index] = value;
+  }
+}
+
+extension ListFiller1<T> on List<T?> {
+  void setAnswer(int index, T value) {
+    if (index >= this.length) {
+      this.addAll(List<T?>.filled(index - this.length + 1, null));
+    }
+    this[index] = value;
+  }
 }
 
 class _PaperDetailScreenState extends State<PaperDetailScreen> {
@@ -21,10 +42,12 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
   bool _isLoading = true;
   bool _isAnswerSelected = false;
   int? _selectedAnswerIndex;
-  double marks = 0.0; // Variable to track the score
- // int correctAnswer=0;
-  //int selectedAnswer=10;
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  double marks = 0.0;
+  int count_question = 0;
+  final player = AudioPlayer();
+  List<String?> myAnswer = [];
+  List<String?> currectAnswers = [];
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -57,18 +80,17 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
 
   void _nextQuestion() {
     if (_selectedAnswerIndex != null) {
-      // Check if selected answer matches the correct answer
-       String correctAnswer = obj[0]['Questions'][_currentQuestionIndex]['correct_answer'].toString();
-       String selectedAnswer = obj[0]['Questions'][_currentQuestionIndex]['answers'][_selectedAnswerIndex!]['no'].toString();
-      print(correctAnswer);
-      print(selectedAnswer);
+      String correctAnswer = obj[0]['Questions'][_currentQuestionIndex]['correct_answer'].toString();
+      String selectedAnswer = obj[0]['Questions'][_currentQuestionIndex]['answers'][_selectedAnswerIndex!]['no'].toString();
+
+      myAnswer.setOrFill(count_question, selectedAnswer);
+      currectAnswers.setAnswer(count_question, correctAnswer);
+      count_question += 1;
+      double Mark=obj[0]["mark"];
       if (correctAnswer == selectedAnswer) {
-        marks =marks+ 2.5; // Add 2.5 marks if correct
-        print('******************************************************* $marks');
+        marks += Mark;
       }
     }
-
-
     if (_currentQuestionIndex < obj[0]['Questions'].length - 1) {
       setState(() {
         _currentQuestionIndex++;
@@ -76,7 +98,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         _selectedAnswerIndex = null;
       });
     } else {
-      // Show final score when all questions are completed
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -92,15 +113,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
                 size: 50,
               ),
               SizedBox(height: 10),
-              Text(
-                'Final Score',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
             ],
           ),
           content: Padding(
@@ -125,7 +137,17 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
                 ),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ReportScreen(
+                      paperName: widget.paperName,
+                      correctAnswers: currectAnswers,
+                      selectedAnswers: myAnswer,
+                      marks: marks,
+                      paperId: widget.paperId,
+                    ),
+                  ),
+                );
               },
               child: const Text(
                 'OK',
@@ -141,7 +163,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       );
     }
   }
-
   void _previousQuestion() {
     if (_currentQuestionIndex > 0) {
       setState(() {
@@ -151,16 +172,22 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       });
     }
   }
-
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    player.dispose();
     super.dispose();
   }
-
-  void _playAudio(String url) async {
+  Future<void> _toggleAudio(String url) async {
     try {
-      await _audioPlayer.play(UrlSource(url));
+      if (_isPlaying) {
+        await player.pause();
+      } else {
+        await player.setUrl(url);
+        await player.play();
+      }
+      setState(() {
+        _isPlaying = !_isPlaying;
+      });
     } catch (e) {
       print('Audio error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -168,19 +195,72 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text('Paper ID: ${widget.paperId}')),
+        appBar: AppBar(
+          title: Text(
+            widget.paperName,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 1.0,
+              shadows: [
+                Shadow(
+                  blurRadius: 5.0,
+                  color: Colors.black26,
+                  offset: Offset(1.5, 1.5),
+                ),
+              ],
+            ),
+          ),
+          centerTitle: true,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blueAccent, Colors.cyan],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+          elevation: 4,
+          shadowColor: Colors.black54,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.share),
+              color: Colors.white,
+              onPressed: () {
+                // Implement share functionality
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.save_alt),
+              color: Colors.white,
+              onPressed: () {
+                // Implement save or download functionality
+              },
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(16.0),
+            ),
+          ),
+        ),
+
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (obj[0].isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text('Paper ID: ${widget.paperId}')),
+        appBar: AppBar(
+          title: Text('${widget.paperName}'),
+          backgroundColor: Colors.blueAccent,
+        ),
         body: const Center(child: Text('No questions available.')),
       );
     }
@@ -192,91 +272,145 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
     final images = currentQuestion['image_url'];
     final FinalAudio = 'https://epstopik.asia/file/$audio';
     final ImageFinaly = images != null && images.isNotEmpty ? 'https://epstopik.asia/file/$images' : null;
-    print(FinalAudio);
-    print(ImageFinaly);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Exam Paper - ${widget.paperId}'),
         backgroundColor: Colors.blueAccent,
-        elevation: 0,
+        elevation: 6,
+        title: Text(
+          '${widget.paperName}',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
         actions: [
-          // Display audio icon if available
           if (audio.isNotEmpty)
-            IconButton(
-              icon: const Icon(
-                Icons.play_circle_outline,
-                color: Colors.white,
-                size: 30,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: GestureDetector(
+                onTap: () => _toggleAudio(FinalAudio),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 6,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(
+                    _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_outline,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
               ),
-              onPressed: () => _playAudio(FinalAudio),
             ),
         ],
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Display question text
+            // Highlighted Box for Question
             Container(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.lightBlue.shade50,
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.lightBlue.shade100,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
               child: Text(
-                '(${_currentQuestionIndex + 1}) :  $questionText',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                '(${_currentQuestionIndex + 1}) : $questionText',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blueGrey[900],
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            // Display images only if available
+
+            // Image Section for Question
             if (ImageFinaly != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Image.network(
                   ImageFinaly,
-                  errorBuilder: (context, error, stackTrace) => Text('Could not load image'),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Text('Could not load image'),
                 ),
               ),
-
             const SizedBox(height: 20),
 
-            // Display each answer option with index as a button
+            // Highlighted Box for Answers
             Expanded(
               child: ListView.builder(
                 itemCount: answers.length,
                 itemBuilder: (context, index) {
                   final answer = answers[index];
+                  final answerImage = answer['Answer_image_url'] != null
+                      ? 'https://epstopik.asia/file/${answer['Answer_image_url']}'
+                      : null;
+
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: Card(
+                      color: _selectedAnswerIndex == index
+                          ? Colors.lightBlue.shade100
+                          : Colors.white,
                       elevation: 3,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: _selectedAnswerIndex == index ? Colors.blueAccent : Colors.grey.shade300,
+                          backgroundColor: _selectedAnswerIndex == index
+                              ? Colors.blueAccent
+                              : Colors.grey.shade300,
                           child: Text(
                             (index + 1).toString(),
                             style: TextStyle(
-                              color: _selectedAnswerIndex == index ? Colors.white : Colors.black,
-                              fontWeight: FontWeight.bold,
+                              color: _selectedAnswerIndex == index
+                                  ? Colors.white
+                                  : Colors.blueGrey,
                             ),
                           ),
                         ),
+
+
                         title: Text(
-                          answer['Answer'] ?? 'No answer text available',
+                          answer['Answer'] ?? '',
                           style: TextStyle(
                             fontSize: 16,
-                            color: _selectedAnswerIndex == index ? Colors.blue : Colors.grey.shade800,
+                            color: Colors.blueGrey[800],
                           ),
                         ),
                         onTap: () {
                           setState(() {
-                            _isAnswerSelected = true;
                             _selectedAnswerIndex = index;
+                            _isAnswerSelected = true;
                           });
                         },
                       ),
@@ -285,40 +419,55 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // Navigation buttons
+            // Navigation Buttons for Next and Previous
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
-                  onPressed: _previousQuestion,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade300,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                if (_currentQuestionIndex > 0)
+                  ElevatedButton(
+                    onPressed: _previousQuestion,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                      backgroundColor: Colors.grey[300],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Previous',
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  child: Text('Previous'),
-                ),
                 ElevatedButton(
                   onPressed: _isAnswerSelected ? _nextQuestion : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isAnswerSelected ? Colors.blueAccent : Colors.grey,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
+                    backgroundColor: Colors.blueAccent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text('Next'),
+                  child: const Text(
+                    'Next',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
           ],
         ),
       ),
+
     );
   }
 }

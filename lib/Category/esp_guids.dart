@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert'; // For parsing JSON
 import '../Menu bar/menu_bar.dart';
 import './dialogs/confirmation_dialog_screen.dart'; // Import the dialog screen
+
 class EspGuidesScreen extends StatefulWidget {
   @override
   _EspGuidesScreenState createState() => _EspGuidesScreenState();
@@ -11,19 +12,15 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<dynamic> _papers = [];
   bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
     _fetchPapers(); // Fetch the papers when the widget is initialized
   }
-
   Future<void> _fetchPapers() async {
     final url = Uri.parse('https://epstopik.asia/api/get-all-eps-papers');
-
     try {
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
         setState(() {
           _papers = json.decode(response.body); // Parse the JSON response
@@ -39,7 +36,6 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,7 +107,6 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
       ),
     );
   }
-
   Widget _buildPaperRow(BuildContext context, String paperName,
       String imagePath, String questionCount, String duration, String paperId) {
     return Card(

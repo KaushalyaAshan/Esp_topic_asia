@@ -1,184 +1,360 @@
 import 'package:flutter/material.dart';
-// Question Model
-class Question {
-  final String questionText;
-  final String? questionImage; // Optional question image
-  final String? questionAudio; // Optional question audio
-  final List<String> answers;
-  final int correctAnswerIndex;
-  final bool isImageAnswer;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:just_audio/just_audio.dart';
 
-  Question({
-    required this.questionText,
-    this.questionImage,
-    this.questionAudio,
-    required this.answers,
-    required this.correctAnswerIndex,
-    this.isImageAnswer = false,
-  });
+class ReportScreen extends StatefulWidget {
+  final List<dynamic> correctAnswers;
+  final List<dynamic> selectedAnswers;
+  final String paperName;
+  final double marks;
+  final String paperId;
 
-  static fromJson(q) {}
-}// Report Screen
-class ReportScreen extends StatelessWidget {
-  final List<Question> questions;
-  final List<int?> userAnswers;
+  const ReportScreen({
+    required this.correctAnswers,
+    required this.selectedAnswers,
+    required this.paperName,
+    required this.marks,
+    required this.paperId,
+    Key? key,
+  }) : super(key: key);
 
-  ReportScreen({required this.questions, required this.userAnswers});
+  @override
+  _ReportScreenState createState() => _ReportScreenState();
+}
+
+class _ReportScreenState extends State<ReportScreen> {
+  List<dynamic> _questions = [];
+  bool _isLoading = true;
+  late AudioPlayer _audioPlayer;
+  int? _playingIndex; // Track the currently playing audio's index
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+    fetchPaper();
+  }
+
+  Future<void> fetchPaper() async {
+    final url = Uri.parse('https://epstopik.asia/api/get-paper/${widget.paperId}');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        setState(() {
+          _questions = jsonDecode(response.body)[0]['Questions'];
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load paper');
+      }
+    } catch (e) {
+      print('Error fetching papers: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleAudio(String audioUrl, int index) async {
+    if (_playingIndex == index) {
+      await _audioPlayer.pause();
+      setState(() => _playingIndex = null);
+    } else {
+      await _audioPlayer.setUrl(audioUrl);
+      _audioPlayer.play();
+      setState(() => _playingIndex = index);
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Calculate the number of correct answers
-    int correctAnswers = 0;
-    for (int i = 0; i < questions.length; i++) {
-      if (userAnswers[i] == questions[i].correctAnswerIndex) {
-        correctAnswers++;
-      }
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text('${widget.paperName}')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_questions.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: Text('${widget.paperName}')),
+        body: const Center(child: Text('No questions available.')),
+      );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Quiz Report"),
-        backgroundColor: Colors.blueAccent,
-        elevation: 4,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Summary Card
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+        title: Text(
+          'Exam Report - ${widget.paperName}',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                blurRadius: 5.0,
+                color: Colors.black26,
+                offset: Offset(1.5, 1.5),
               ),
-              color: Colors.blueAccent,
-              elevation: 5,
-              child: Padding(
+            ],
+          ),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueAccent, Colors.lightBlueAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                offset: Offset(0, 3),
+                blurRadius: 5.0,
+              ),
+            ],
+          ),
+        ),
+        elevation: 4,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.share, color: Colors.white),
+            onPressed: () {
+              // Share functionality here
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.download, color: Colors.white),
+            onPressed: () {
+              // Download functionality here
+            },
+          ),
+        ],
+      ),
+
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Marks Display Section
+              Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(16.0),
+                margin: const EdgeInsets.only(bottom: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Your Performance",
+                    Text(
+                      "Total Marks",
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Colors.blueAccent,
+                        letterSpacing: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Text(
-                      "You answered $correctAnswers out of ${questions.length} questions correctly.",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
+                      '${widget.marks.toStringAsFixed(1)} / Max Marks', // Display total marks with formatting
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              // Questions List
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _questions.length,
+                  itemBuilder: (context, index) {
+                    final question = _questions[index];
+                    final questionText = question['Questions_content'] ?? 'No question content available';
+                    final imageUrl = question['image_url'] ?? '';
+                    final audioTrack = question['audio_track'] ?? '';
+                    final answers = question['answers'] ?? [];
+                    final correctAnswer = widget.correctAnswers[index];
+                    final selectedAnswer = widget.selectedAnswers[index];
+                    final finalAudio = 'https://epstopik.asia/file/$audioTrack';
+                    final imageFinal = imageUrl.isNotEmpty ? 'https://epstopik.asia/file/$imageUrl' : null;
+                    final isCorrect = correctAnswer == selectedAnswer;
 
-            // Detailed Report List
-            Expanded(
-              child: ListView.builder(
-                itemCount: questions.length,
-                itemBuilder: (context, index) {
-                  bool isCorrect = userAnswers[index] == questions[index].correctAnswerIndex;
-
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    elevation: 5,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Question Text
-                          Text(
-                            'Q${index + 1}: ${questions[index].questionText}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // Answers Display
-                          Column(
-                            children: List.generate(questions[index].answers.length, (answerIndex) {
-                              bool isSelectedAnswer = userAnswers[index] == answerIndex;
-                              bool isCorrectAnswer = answerIndex == questions[index].correctAnswerIndex;
-
-                              return Container(
-                                margin: const EdgeInsets.symmetric(vertical: 5.0),
-                                padding: const EdgeInsets.all(12.0),
-                                decoration: BoxDecoration(
-                                  color: isCorrectAnswer
-                                      ? Colors.green.withOpacity(0.3) // Highlight correct answer in green
-                                      : isSelectedAnswer
-                                      ? Colors.red.withOpacity(0.3) // Highlight wrong answer in red
-                                      : Colors.white, // Normal background for other answers
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: isSelectedAnswer
-                                        ? isCorrectAnswer
-                                        ? Colors.green
-                                        : Colors.red
-                                        : Colors.grey.shade300,
-                                  ),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Card(
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Question ${index + 1}',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey,
                                 ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: questions[index].isImageAnswer
-                                          ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(8.0),
-                                        child: Image.asset(
-                                          questions[index].answers[answerIndex],
-                                          height: 80,
-                                          fit: BoxFit.contain,
-                                        ),
-                                      )
-                                          : Text(
-                                        questions[index].answers[answerIndex],
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: isCorrectAnswer
-                                              ? Colors.green
-                                              : isSelectedAnswer
-                                              ? Colors.red
-                                              : Colors.black,
-                                        ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                questionText,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              if (imageUrl.isNotEmpty)
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(imageFinal!, fit: BoxFit.cover),
+                                ),
+                              if (audioTrack.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: GestureDetector(
+                                    onTap: () => _toggleAudio(finalAudio, index),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.blueAccent.withOpacity(0.1),
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.3),
+                                            blurRadius: 8,
+                                            spreadRadius: 2,
+                                            offset: Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      padding: const EdgeInsets.all(12),
+                                      child: Icon(
+                                        _playingIndex == index ? Icons.pause : Icons.play_arrow,
+                                        color: Colors.blueAccent,
+                                        size: 28,
                                       ),
                                     ),
-                                    if (isCorrectAnswer)
-                                      const Icon(Icons.check_circle, color: Colors.green),
-                                    if (isSelectedAnswer && !isCorrectAnswer)
-                                      const Icon(Icons.cancel, color: Colors.red),
-                                  ],
+                                  ),
                                 ),
-                              );
-                            }
-                            ),
+                              const SizedBox(height: 12),
+                              // Grid layout for answers
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 8.0,
+                                  mainAxisSpacing: 8.0,
+                                ),
+                                itemCount: answers.length,
+                                itemBuilder: (context, answerIndex) {
+                                  final answer = answers[answerIndex];
+                                  final isSelected = selectedAnswer.toString() == answer['no'].toString();
+                                  final isAnswerCorrect = correctAnswer.toString() == answer['no'].toString();
+                                  final answerImageUrl = answer['Answer_image_url'];
+                                  final indexLabel = (answerIndex + 1).toString();
+
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      color: isAnswerCorrect
+                                          ? Colors.green.withOpacity(0.25)
+                                          : isSelected
+                                          ? Colors.red.withOpacity(0.25)
+                                          : Colors.transparent,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.3),
+                                          blurRadius: 8,
+                                          spreadRadius: 2,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '$indexLabel',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blueGrey,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          if (answerImageUrl != null && answerImageUrl.isNotEmpty)
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: Image.network(
+                                                'https://epstopik.asia/file/$answerImageUrl',
+                                                fit: BoxFit.contain,
+                                                height: 50,
+                                              ),
+                                            )
+                                          else
+                                            Expanded(
+                                              child: Text(
+                                                answer['Answer'] ?? '',
+                                                style: TextStyle(
+                                                  color: isAnswerCorrect
+                                                      ? Colors.green
+                                                      : isSelected
+                                                      ? Colors.red
+                                                      : Colors.black,
+                                                  fontWeight: isAnswerCorrect
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                           ),
-                          const Divider(color: Colors.grey),
-                        ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        )
     );
   }
 }

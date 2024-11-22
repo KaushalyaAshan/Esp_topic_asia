@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'profile.dart';
+
 class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,10 @@ class SettingsScreen extends StatelessWidget {
             title: const Text('Profile', style: TextStyle(fontSize: 18)),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () {
-              // Navigate to Profile Settings
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
+              );
             },
           ),
           ListTile(

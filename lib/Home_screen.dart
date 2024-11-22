@@ -6,10 +6,8 @@ import 'Category/category.dart'; // Import page for Category
 import 'Category/learning_communication.dart'; // Import page for Learning Communication
 import 'Category/korean_culture_info.dart'; // Import page for Korean Culture & Information
 import 'Category/computer.dart'; // Import page for Computer
-
 class HomeScreen extends StatelessWidget {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Create a global key
-
   @override
   Widget build(BuildContext context) {
     final double buttonWidth = (MediaQuery.of(context).size.width / 2) - 24; // Ensure buttons are the same width
@@ -179,7 +177,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-
 // Custom clipper for the double-sided curved AppBar
 class DoubleCurvedAppBarClipper extends CustomClipper<Path> {
   @override

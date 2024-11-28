@@ -72,7 +72,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       // Optionally handle the case where the ID retrieval fails
     }
   }
-
   Future<void> _postDeviceIdAndNavigate(String androidId) async {
     final url = Uri.parse('https://epstopik.asia/api/user-status-check');
     try {

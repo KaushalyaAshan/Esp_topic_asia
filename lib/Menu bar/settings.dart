@@ -42,7 +42,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 40),
 
-          // Notifications Section
+          //Notifications Section
           _buildSectionTitle('Notifications'),
           SwitchListTile(
             activeColor: Colors.blueAccent,
@@ -97,7 +97,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
 
-          // Logout Button
+          //Logout Button
           ElevatedButton.icon(
             onPressed: () {
               // Implement logout functionality

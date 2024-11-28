@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../paper_details/paper_detail_screen.dart';
 import '../Registation/register_screen.dart'; // Import the RegisterScreen
 
@@ -17,30 +18,64 @@ class ConfirmationDialogScreen extends StatelessWidget {
     required this.paperId,
     Key? key,
   }) : super(key: key);
-
-  Future<bool> _checkRegistration() async {
-    final String userId = "unique_user_id"; // Replace with actual user ID logic
-    final url = Uri.parse('https://epstopik.asia/api/register');
+  Future<int> _checkRegistration() async {
+    // Get the user ID from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString(
+        "Device_id"); // Ensure the key is 'user_id'
+    final url = Uri.parse('https://epstopik.asia/api/user-details');
 
     try {
-      final response = await http.get(
+      // Send POST request with the user ID
+      final response = await http.post(
         url,
-        headers: {'Authorization': 'Bearer $userId'},
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'user_id': userId}), // Assuming 'user_id' is the expected key
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // Assume the API returns { "registered": true/false }
-        return data['registered'] ?? false;
+          print(data['payment']);
+        // Check the 'payment' value
+        // if (data['payment'] == 1) {
+        //   return true; // Payment is valid
+        // } else {
+        //   return false; // Payment is invalid
+        // }
+        return 1;//data['payment'];
       } else {
-        return false;
+        // Log response error for debugging
+        print("Error: ${response.statusCode} - ${response.reasonPhrase}");
+        return -1;
       }
     } catch (error) {
+      // Log exception
       print("Error checking registration: $error");
-      return false;
+      return -1;
     }
   }
-
+  // Future<bool> _checkRegistration() async {
+  //   final String userId = "unique_user_id"; // Replace with actual user ID logic
+  //   final url = Uri.parse('https://epstopik.asia/api/register');
+  //
+  //   try {
+  //     final response = await http.get(
+  //       url,
+  //       headers: {'Authorization': 'Bearer $userId'},
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       // Assume the API returns { "registered": true/false }
+  //       return data['registered'] ?? false;
+  //     } else {
+  //       return false;
+  //     }
+  //   } catch (error) {
+  //     print("Error checking registration: $error");
+  //     return false;
+  //   }
+  // }
   void _showRegisterMessageBox(BuildContext context) {
     showDialog(
       context: context,
@@ -140,14 +175,78 @@ class ConfirmationDialogScreen extends StatelessWidget {
       ),
     );
   }
+  void _showNoMoneyAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15), // Rounded corners
+          ),
+          backgroundColor: Colors.white, // Background color
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 30), // Icon
+              SizedBox(width: 10),
+              Text(
+                'No Money',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black, // Title text color
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'You do not have sufficient funds to proceed.',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[800], // Subtle text color
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.red, // Button background color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10), // Button shape
+                ),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: Text(
+                  'OK',
+                  style: TextStyle(
+                    color: Colors.white, // Button text color
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
   void _handleStartButton(BuildContext context) async {
     final isRegistered = await _checkRegistration();
 
-    if (isRegistered) {
+    if (isRegistered==1) {
       _navigateToPaperDetailScreen(context);
-    } else {
+    } else if (isRegistered==0) {
       _showRegisterMessageBox(context);
     }
+    else{
+      //Navigator.of(context).pop();
+      _showNoMoneyAlert(context);
+
+    }
+
   }
   @override
   Widget build(BuildContext context) {

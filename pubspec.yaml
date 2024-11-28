@@ -41,6 +41,7 @@ dependencies:
   android_id: ^0.4.0
   #audioplayers: ^6.1.0
   just_audio: ^0.9.42
+  webview_flutter: ^4.10.0
 
 dev_dependencies:
   flutter_test:

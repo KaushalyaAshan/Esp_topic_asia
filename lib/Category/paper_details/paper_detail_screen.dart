@@ -78,7 +78,7 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
     }
   }
 
-  void _nextQuestion() {
+  void _nextQuestion() async {
     if (_selectedAnswerIndex != null) {
       String correctAnswer = obj[0]['Questions'][_currentQuestionIndex]['correct_answer'].toString();
       String selectedAnswer = obj[0]['Questions'][_currentQuestionIndex]['answers'][_selectedAnswerIndex!]['no'].toString();
@@ -86,11 +86,20 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       myAnswer.setOrFill(count_question, selectedAnswer);
       currectAnswers.setAnswer(count_question, correctAnswer);
       count_question += 1;
-      double Mark=obj[0]["mark"];
+      double mark = obj[0]["mark"];
       if (correctAnswer == selectedAnswer) {
-        marks += Mark;
+        marks += mark;
       }
     }
+
+    // Stop audio playback before moving to the next question
+    if (_isPlaying) {
+      await player.stop();
+      setState(() {
+        _isPlaying = false;
+      });
+    }
+
     if (_currentQuestionIndex < obj[0]['Questions'].length - 1) {
       setState(() {
         _currentQuestionIndex++;
@@ -98,72 +107,18 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         _selectedAnswerIndex = null;
       });
     } else {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          backgroundColor: Colors.white,
-          title: const Column(
-            children: [
-              Icon(
-                Icons.emoji_events,
-                color: Colors.orangeAccent,
-                size: 50,
-              ),
-              SizedBox(height: 10),
-            ],
-          ),
-          content: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0),
-            child: Text(
-              'Your total marks: $marks%',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[800],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                backgroundColor: Colors.blueAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ReportScreen(
-                      paperName: widget.paperName,
-                      correctAnswers: currectAnswers,
-                      selectedAnswers: myAnswer,
-                      marks: marks,
-                      paperId: widget.paperId,
-                    ),
-                  ),
-                );
-              },
-              child: const Text(
-                'OK',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+      _showResults();
     }
   }
-  void _previousQuestion() {
+
+  void _previousQuestion() async {
+    if (_isPlaying) {
+      await player.stop();
+      setState(() {
+        _isPlaying = false;
+      });
+    }
+
     if (_currentQuestionIndex > 0) {
       setState(() {
         _currentQuestionIndex--;
@@ -172,11 +127,7 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       });
     }
   }
-  @override
-  void dispose() {
-    player.dispose();
-    super.dispose();
-  }
+
   Future<void> _toggleAudio(String url) async {
     try {
       if (_isPlaying) {
@@ -195,6 +146,96 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       );
     }
   }
+
+  void _showResults() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        backgroundColor: Colors.white,
+        title: const Column(
+          children: [
+            Icon(
+              Icons.emoji_events,
+              color: Colors.orangeAccent,
+              size: 50,
+            ),
+            SizedBox(height: 10),
+          ],
+        ),
+        content: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Text(
+            'Your total marks: $marks%',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[800],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              backgroundColor: Colors.blueAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ReportScreen(
+                    paperName: widget.paperName,
+                    correctAnswers: currectAnswers,
+                    selectedAnswers: myAnswer,
+                    marks: marks,
+                    paperId: widget.paperId,
+                  ),
+                ),
+              );
+            },
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
+  // Future<void> _toggleAudio(String url) async {
+  //   try {
+  //     if (_isPlaying) {
+  //       await player.pause();
+  //     } else {
+  //       await player.setUrl(url);
+  //       await player.play();
+  //     }
+  //     setState(() {
+  //       _isPlaying = !_isPlaying;
+  //     });
+  //   } catch (e) {
+  //     print('Audio error: $e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Could not play audio.')),
+  //     );
+  //   }
+  // }
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -244,7 +285,7 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
               },
             ),
           ],
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
               bottom: Radius.circular(16.0),
             ),
@@ -279,7 +320,7 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         elevation: 6,
         title: Text(
           '${widget.paperName}',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,

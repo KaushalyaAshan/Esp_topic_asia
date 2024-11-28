@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
-class PrivacyPolicyScreen extends StatelessWidget {
+class PrivacyPolicyScreen extends StatefulWidget {
+  @override
+  _PrivacyPolicyScreenState createState() => _PrivacyPolicyScreenState();
+}
+
+class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
+  late final WebViewController _webViewController;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,118 +34,28 @@ class PrivacyPolicyScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              child: const Text(
-                'Privacy Policy',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-
-            // Content Box
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15.0),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10.0,
-                    spreadRadius: 2.0,
-                  ),
-                ],
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'We are committed to protecting your privacy. This policy outlines how your personal information is collected and used.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      height: 1.6,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Section - Data Collection
-                  Text(
-                    'Data Collection',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'We collect personal information to provide a better user experience.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      height: 1.6,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Section - Data Usage
-                  Text(
-                    'Data Usage',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Your personal data is used solely for improving our services and ensuring a seamless user experience.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      height: 1.6,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Add more sections as necessary...
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Decorative Footer
-            const Center(
-              child: Column(
-                children: [
-                  Icon(Icons.privacy_tip, color: Colors.blueAccent, size: 50),
-                  SizedBox(height: 10),
-                  Text(
-                    'Your privacy is important to us',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      body: WebView(
+        initialUrl: 'https://your-privacy-policy-url.com', // Replace with your privacy policy URL
+        //javascriptMode: JavascriptMode.unrestricted,
+        onWebViewCreated: (controller) {
+          _webViewController = controller;
+        },
+        navigationDelegate: (NavigationRequest request) {
+          if (request.url.startsWith('https://')) {
+            return NavigationDecision.navigate;
+          } else {
+            return NavigationDecision.prevent;
+          }
+        },
+        onPageStarted: (String url) {
+          debugPrint('Page started loading: $url');
+        },
+        onPageFinished: (String url) {
+          debugPrint('Page finished loading: $url');
+        },
       ),
     );
   }
+
+  WebView({required String initialUrl, required Null Function(dynamic controller) onWebViewCreated, required NavigationDecision Function(NavigationRequest request) navigationDelegate, required Null Function(String url) onPageStarted, required Null Function(String url) onPageFinished}) {}
 }

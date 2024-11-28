@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen>
     // Initialize animation controller
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2), // Fade-in animation duration
+      duration: Duration(seconds: 4), // Fade-in animation duration
     );
     // Set up fade animation
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);

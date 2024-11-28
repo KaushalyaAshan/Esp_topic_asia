@@ -8,7 +8,6 @@ class ProfileScreen extends StatefulWidget {
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
-
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   Map<String, dynamic>? _userData;
@@ -18,7 +17,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _fetchUserDetails();
   }
-
   Future<void> _fetchUserDetails() async {
     final url = Uri.parse('https://epstopik.asia/api/user-details');
     try {
@@ -26,7 +24,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString(
           "Device_id"); // Ensure the key is 'user_id'
-
 
       if (userId == null) {
         throw Exception('User ID not found in SharedPreferences');
@@ -55,7 +52,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,19 +76,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         elevation: 4,
         // Add slight shadow for depth
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsScreen()),
-              );
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.settings, color: Colors.white),
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(builder: (context) => SettingsScreen()),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
-
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _userData == null
@@ -179,29 +174,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const Spacer(),
 
-            // Edit Profile Button
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Edit Profile Coming Soon!')),
-                  );
-                },
-                icon: const Icon(Icons.edit, size: 20),
-                label: const Text(
-                  'Edit Profile',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12, horizontal: 24),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: Colors.blueAccent,
-                ),
-              ),
-            ),
+            // // Edit Profile Button
+            // Center(
+            //   child: ElevatedButton.icon(
+            //     onPressed: () {
+            //       ScaffoldMessenger.of(context).showSnackBar(
+            //         const SnackBar(content: Text('Edit Profile Coming Soon!')),
+            //       );
+            //     },
+            //     icon: const Icon(Icons.edit, size: 20),
+            //     label: const Text(
+            //       'Edit Profile',
+            //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            //     ),
+            //     style: ElevatedButton.styleFrom(
+            //       padding: const EdgeInsets.symmetric(
+            //           vertical: 12, horizontal: 24),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(12),
+            //       ),
+            //       backgroundColor: Colors.blueAccent,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -328,3 +323,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
 //     );
 //   }
 // }
+//jjjh Ask afk

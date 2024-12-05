@@ -8,7 +8,6 @@ import 'dart:convert'; // For JSON encoding and decoding
 void main() {
   runApp(MyApp());
 }
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -31,7 +30,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   String? _deviceId;
-
   @override
   void initState() {
     super.initState();

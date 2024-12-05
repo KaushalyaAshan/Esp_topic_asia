@@ -7,10 +7,12 @@ import 'package:just_audio/just_audio.dart';
 class PaperDetailScreen extends StatefulWidget {
   final String paperId;
   final String paperName;
+  final String userId; // Added userId
 
   const PaperDetailScreen({
     required this.paperId,
     required this.paperName,
+    required this.userId,
     Key? key,
   }) : super(key: key);
 
@@ -26,7 +28,6 @@ extension ListFiller<T> on List<T?> {
     this[index] = value;
   }
 }
-
 extension ListFiller1<T> on List<T?> {
   void setAnswer(int index, T value) {
     if (index >= this.length) {
@@ -35,7 +36,6 @@ extension ListFiller1<T> on List<T?> {
     this[index] = value;
   }
 }
-
 class _PaperDetailScreenState extends State<PaperDetailScreen> {
   List<dynamic> _questions = [];
   int _currentQuestionIndex = 0;
@@ -48,20 +48,16 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
   List<String?> myAnswer = [];
   List<String?> currectAnswers = [];
   bool _isPlaying = false;
-
   @override
   void initState() {
     super.initState();
     fetchPaper();
   }
-
   var obj;
   Future<void> fetchPaper() async {
     final url = Uri.parse('https://epstopik.asia/api/get-paper/${widget.paperId}');
-
     try {
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
         setState(() {
           obj = jsonDecode(response.body);
@@ -78,11 +74,46 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
     }
   }
 
+  Future<void> postMarks() async {
+    final url = Uri.parse('https://epstopik.asia/api/insert-mark');
+    //final userId = "39"; // Replace with the actual user ID
+print(widget.userId);
+print(widget.paperId);
+    final Map<String, dynamic> payload = {
+      "userid": widget.userId,
+      "paperId": widget.paperId,
+      "score": marks.toString(),
+      "userAnswers": List.generate(myAnswer.length, (index) {
+        return {
+          "questionNo": (index + 1).toString(),
+          "answer": myAnswer[index],
+        };
+      }),
+    };
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(payload),
+      );
+      print('--------------------------*****${response.statusCode}');
+      // Treat 201 as a success
+      if (response.statusCode == 201) {
+        print('Marks posted successfully: ${response.body}');
+      } else {
+        print('Failed to post marks. Status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error posting marks: $e');
+    }
+  }
   void _nextQuestion() async {
     if (_selectedAnswerIndex != null) {
-      String correctAnswer = obj[0]['Questions'][_currentQuestionIndex]['correct_answer'].toString();
-      String selectedAnswer = obj[0]['Questions'][_currentQuestionIndex]['answers'][_selectedAnswerIndex!]['no'].toString();
-
+      String correctAnswer = obj[0]['Questions'][_currentQuestionIndex]['correct_answer']
+          .toString();
+      String selectedAnswer = obj[0]['Questions'][_currentQuestionIndex]['answers'][_selectedAnswerIndex!]['no']
+          .toString();
       myAnswer.setOrFill(count_question, selectedAnswer);
       currectAnswers.setAnswer(count_question, correctAnswer);
       count_question += 1;
@@ -91,7 +122,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         marks += mark;
       }
     }
-
     // Stop audio playback before moving to the next question
     if (_isPlaying) {
       await player.stop();
@@ -99,7 +129,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         _isPlaying = false;
       });
     }
-
     if (_currentQuestionIndex < obj[0]['Questions'].length - 1) {
       setState(() {
         _currentQuestionIndex++;
@@ -107,10 +136,10 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         _selectedAnswerIndex = null;
       });
     } else {
+      await postMarks(); // Post marks when quiz is completed
       _showResults();
     }
   }
-
   void _previousQuestion() async {
     if (_isPlaying) {
       await player.stop();
@@ -118,7 +147,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         _isPlaying = false;
       });
     }
-
     if (_currentQuestionIndex > 0) {
       setState(() {
         _currentQuestionIndex--;
@@ -127,7 +155,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       });
     }
   }
-
   Future<void> _toggleAudio(String url) async {
     try {
       if (_isPlaying) {
@@ -136,13 +163,14 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         await player.setUrl(url);
         await player.play();
       }
+
       setState(() {
         _isPlaying = !_isPlaying;
       });
     } catch (e) {
       print('Audio error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not play audio.')),
+        const SnackBar(content: Text('Could not play audio.')),
       );
     }
   }
@@ -180,7 +208,7 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         actions: [
           TextButton(
             style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               backgroundColor: Colors.blueAccent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
@@ -295,7 +323,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-
     if (obj[0].isEmpty) {
       return Scaffold(
         appBar: AppBar(
@@ -305,7 +332,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
         body: const Center(child: Text('No questions available.')),
       );
     }
-
     final currentQuestion = obj[0]['Questions'][_currentQuestionIndex];
     final questionText = currentQuestion['Questions_content'] ?? 'No question content available';
     final answers = currentQuestion['answers'] ?? [];
@@ -414,7 +440,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
                   final answerImage = answer['Answer_image_url'] != null
                       ? 'https://epstopik.asia/file/${answer['Answer_image_url']}'
                       : null;
-
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: Card(
@@ -439,8 +464,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
                             ),
                           ),
                         ),
-
-
                         title: Text(
                           answer['Answer'] ?? '',
                           style: TextStyle(
@@ -461,7 +484,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
             // Navigation Buttons for Next and Previous
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -508,7 +530,6 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
           ],
         ),
       ),
-
     );
   }
 }

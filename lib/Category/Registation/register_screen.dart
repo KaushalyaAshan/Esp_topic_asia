@@ -47,20 +47,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _serverRef = "";
   String _serviceProvider = "";
   String _message = "";
-
+  String _headerDescription = "";
+  String _footerDescription = "";
   @override
   void initState() {
     super.initState();
     _loadUserId();
+    _fetchMessages();
   }
 
   Future<void> _loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _userId = prefs.getString("Device_id") ?? "UnknownUserID";
+      //userId=prefs.getString("Device_id") ?? "UnknownUserID";
     });
   }
 
+  Future<void> _fetchMessages() async {
+    final url = Uri.parse('https://epstopik.asia/api/messages');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _headerDescription = data["header_description"] ?? "";
+          _footerDescription = data["footer_description"] ?? "";
+        });
+      } else {
+        print('Failed to fetch header and footer descriptions');
+      }
+    } catch (e) {
+      print('Error fetching messages: $e');
+    }
+  }
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate() && _userId != null) {
       setState(() => _isLoading = true);
@@ -130,42 +150,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         centerTitle: true,
       ),
-      body: _isVerificationVisible
-          ? VerificationWidget(
-        serverRef: _serverRef,
-        serviceProvider: _serviceProvider,
-        userId: _userId!,
-        onVerified: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
+      body:  Column(
+          children: [
+          if (_headerDescription.isNotEmpty)
+        Container(
+          width: MediaQuery.of(context).size.width * 1,
+          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Colors.white54, Colors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                offset: const Offset(0, 3),
+                blurRadius: 6,
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(15),
+          child: Text(
+            _headerDescription,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black45,
+            ),
+          ),
+        ),
+
+         Expanded(
+          child:_isVerificationVisible
+           ? VerificationWidget(
+            serverRef: _serverRef,
+            serviceProvider: _serviceProvider,
+            userId: _userId!,
+            onVerified: () {
+              Navigator.push(
+              context,
+              MaterialPageRoute(
               builder: (context) => PaperDetailScreen(
                 paperName: widget.paperName,
                 paperId: widget.paperId,
+                userId: _userId!,
+
               ),
             ),
           );
         },
       )
           : Center(
-        child: Card(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          elevation: 5,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            child: Card(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              elevation: 5,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  const SizedBox(height: 20),
+               child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                 child: Form(
+                   key: _formKey,
+                   child: ListView(
+                     shrinkWrap: true,
+                     children: [
+                     const SizedBox(height: 20),
                   // Logo Widget
-                  Center(
-                    child: Column(
-                      children: [
+                     Center(
+                       child: Column(
+                         children: [
                         Image.asset(
                           'assets/logo.png', // Path to your logo image
                           height: 100,
@@ -183,15 +238,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 30),
+                     const SizedBox(height: 30),
                   // Form Fields
-                  _buildTextField(
+                     _buildTextField(
                     _nameController,
                     'Name',
                     'Please enter your name',
                   ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
+                     const SizedBox(height: 20),
+                    _buildTextField(
                     _phoneController,
                     'Telephone No',
                     'Please enter a valid phone number',
@@ -200,39 +255,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? null
                         : 'Enter a valid phone number',
                   ),
-                  const SizedBox(height: 20),
-                  _buildCountryDropdown(),
-                 //const SizedBox(height: 20),
-                  // if (_userId != null)
-                  //   Container(
-                  //     padding: const EdgeInsets.all(12),
-                  //     decoration: BoxDecoration(
-                  //       color: Colors.blue.shade50,
-                  //       borderRadius: BorderRadius.circular(10),
-                  //     ),
-                  //     child: Text(
-                  //       'User ID: $_userId',
-                  //       style: const TextStyle(
-                  //         fontSize: 16,
-                  //         fontWeight: FontWeight.bold,
-                  //         color: Colors.blueAccent,
-                  //       ),
-                  //     ),
-                  //   )
-                  // else
-                  //   const Text(
-                  //     'Loading user ID...',
-                  //     style: TextStyle(color: Colors.red),
-                  //     textAlign: TextAlign.center,
-                  //   ),
-                  const SizedBox(height: 30),
-                  _buildSubmitButton(),
+                     const SizedBox(height: 20),
+                     _buildCountryDropdown(),
+                     const SizedBox(height: 30),
+                     _buildSubmitButton(),
                 ],
               ),
             ),
           ),
         ),
       ),
+    ),
+            if (_footerDescription.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Colors.white30, Colors.white54],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      offset: const Offset(0, 4),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                child: Text(
+                  _footerDescription,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black54,
+                    height: 1.5, // Line height for better readability
+                  ),
+                ),
+              ),
+          ],
+    ),
     );
   }
 
@@ -271,7 +336,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
     );
   }
-
   Widget _buildCountryDropdown() {
     final List<String> countries = [
       'Select Country',
@@ -364,7 +428,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-
 class VerificationWidget extends StatelessWidget {
   final String serverRef;
   final String serviceProvider;
@@ -393,11 +456,13 @@ class VerificationWidget extends StatelessWidget {
           "UserID": userId,
         },
       );
+
       print(pin);
       print(serverRef);
       print(serviceProvider);
       print(userId);
       print(response.statusCode );
+
       if (response.statusCode == 200) {
         print(response.statusCode );
         final responseData = json.decode(response.body);
@@ -416,7 +481,6 @@ class VerificationWidget extends StatelessWidget {
     }
     return false;
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -529,5 +593,4 @@ class VerificationWidget extends StatelessWidget {
       ),
     );
   }
-
 }

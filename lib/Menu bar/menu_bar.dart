@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'PdfViewer.dart';
+import 'Terms_&_condition.dart';
 import 'privacy_policy.dart';
 import 'settings.dart';
 import 'about.dart';
-import 'notifications.dart';
 import 'profile.dart';
 
 
@@ -55,17 +56,17 @@ class AppDrawer extends StatelessWidget {
                       builder: (context) =>ProfileScreen()));
             },
           ),
-          // ListTile(
-          //   leading: const Icon(Icons.settings),
-          //   title: const Text('Settings'),
-          //   onTap: () {
-          //     Navigator.pop(context); // Close the drawer first
-          //     Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //             builder: (context) => SettingsScreen()));
-          //   },
-          // ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('PDF'),
+            onTap: () {
+              Navigator.pop(context); // Close the drawer first
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>PdfViewerPage(pdfUrl: 'https://example.com/sample.pdf')));
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('About'),
@@ -74,20 +75,9 @@ class AppDrawer extends StatelessWidget {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => AboutScreen()));
+                      builder: (context) => AboutPage()));
             },
           ),
-          // ListTile(
-          //   leading: const Icon(Icons.notifications),
-          //   title: const Text('Notifications'),
-          //   onTap: () {
-          //     Navigator.pop(context); // Close the drawer first
-          //     Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //             builder: (context) => NotificationsScreen()));
-          //   },
-          // ),
           ListTile(
             leading: const Icon(Icons.privacy_tip),
             title: const Text('Privacy & Policy'),
@@ -97,6 +87,18 @@ class AppDrawer extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => PrivacyPolicyScreen()));
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.article),
+            title: const Text('Terms & ConditionsScreen'),
+            onTap: () {
+              Navigator.pop(context); // Close the drawer first
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => TermsConditionsScreen()));
             },
           ),
         ],

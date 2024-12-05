@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class PrivacyPolicyScreen extends StatefulWidget {
+class TermsConditionsScreen extends StatefulWidget {
   @override
-  _PrivacyPolicyScreenState createState() => _PrivacyPolicyScreenState();
+  _TermsConditionsScreenState createState() => _TermsConditionsScreenState();
 }
 
-class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
+class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
   late final WebViewController _controller;
-
   @override
   void initState() {
     super.initState();
+    // Initialize WebViewController
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('https://epstopik.asia/privacy-policy')); // Replace with your URL
+      ..loadRequest(Uri.parse('https://epstopik.asia/tc')); // Replace with your Terms and Conditions URL
   }
 
   @override
@@ -22,8 +22,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Privacy Policy',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+          'Terms and Conditions',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.blueAccent,
         centerTitle: true,

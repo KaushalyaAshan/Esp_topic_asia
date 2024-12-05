@@ -10,19 +10,21 @@ class ConfirmationDialogScreen extends StatelessWidget {
   final String questionCount;
   final String duration;
   final String paperId;
+ // final String userId;
 
   const ConfirmationDialogScreen({
     required this.paperName,
     required this.questionCount,
     required this.duration,
     required this.paperId,
+   // required this.userId,
     Key? key,
   }) : super(key: key);
+
   Future<int> _checkRegistration() async {
     // Get the user ID from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString(
-        "Device_id"); // Ensure the key is 'user_id'
+    final userId = prefs.getString("Device_id"); // Ensure the key is 'user_id'
     final url = Uri.parse('https://epstopik.asia/api/user-details');
 
     try {
@@ -164,13 +166,16 @@ class ConfirmationDialogScreen extends StatelessWidget {
       ),
     );
   }
-  void _navigateToPaperDetailScreen(BuildContext context) {
+  Future<void> _navigateToPaperDetailScreen(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    String userId = prefs.getString("Device_id").toString();
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => PaperDetailScreen(
           paperName: paperName,
           paperId: paperId,
+          userId: userId,
         ),
       ),
     );
@@ -244,9 +249,7 @@ class ConfirmationDialogScreen extends StatelessWidget {
     else{
       //Navigator.of(context).pop();
       _showNoMoneyAlert(context);
-
     }
-
   }
   @override
   Widget build(BuildContext context) {

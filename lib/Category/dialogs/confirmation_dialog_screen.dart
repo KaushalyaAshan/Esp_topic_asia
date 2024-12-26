@@ -42,7 +42,7 @@ class ConfirmationDialogScreen extends StatelessWidget {
         final data = json.decode(response.body);
 
         print('******************** ${data['payment']}');
-        return 1;data['payment'];
+        return data['payment'];
       } else {
         // Log response error for debugging
         print("Error: ${response.statusCode} - ${response.reasonPhrase}");

@@ -308,7 +308,7 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
 
                                     'EPS-TOPIK MODAL PAPERS ${answer['paper_id']}' ?? 'Paper Name',
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black87,
                                     ),
@@ -363,7 +363,7 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.transparent, // Transparent to show gradient
                                     shadowColor: Colors.transparent, // No button shadow
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Padding for better button appearance
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5), // Padding for better button appearance
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12), // Rounded corners for button
                                     ),
@@ -371,7 +371,7 @@ class _EspGuidesScreenState extends State<EspGuidesScreen> {
                                   child: const Text(
                                     'Details',
                                     style: TextStyle(
-                                      fontSize: 18, // Slightly larger font size for the button text
+                                      fontSize:16, // Slightly larger font size for the button text
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white, // White text color
                                     ),

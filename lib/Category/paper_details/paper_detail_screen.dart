@@ -111,6 +111,7 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       print('Error posting marks: $e');
     }
   }
+  int x=0;
   void _nextQuestion() async {
     if (_selectedAnswerIndex != null) {
       if (_isPlaying) {
@@ -119,11 +120,15 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
           _isPlaying = false;
         });
       }
+
+int X=x++;
       String correctAnswer = obj[0]['Questions'][_currentQuestionIndex]['correct_answer']
           .toString();
       String selectedAnswer = obj[0]['Questions'][_currentQuestionIndex]['answers'][_selectedAnswerIndex!]['no']
           .toString();
       myAnswer.setOrFill(count_question, selectedAnswer);
+      print(X);
+      print(myAnswer);
       currectAnswers.setAnswer(count_question, correctAnswer);
       count_question += 1;
       double mark = obj[0]["mark"];

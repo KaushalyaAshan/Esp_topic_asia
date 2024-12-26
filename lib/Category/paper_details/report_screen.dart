@@ -342,7 +342,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                                       ? Colors.red
                                                       : Colors.black,
                                                   fontWeight: isAnswerCorrect
-                                                      ? FontWeight.bold
+                                                       ? FontWeight.bold
                                                       : FontWeight.normal,
                                                 ),
                                               ),

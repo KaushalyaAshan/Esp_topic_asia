@@ -19,13 +19,39 @@ class _AboutPageState extends State<AboutPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Back arrow icon with white color
+          onPressed: () {
+            Navigator.pop(context); // Navigate back to the previous page
+          },
+        ),
         title: const Text(
           'About Us',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.white, // Title text color is white
+          ),
         ),
-        backgroundColor: Colors.blueAccent,
         centerTitle: true,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF1565C0), // A darker blue
+                Color(0xFF42A5F5), // A lighter blue for a gradient effect
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 4, // Slight shadow for depth
+        actions: const [
+          // Add any action buttons if needed in the future
+        ],
       ),
+
       body: WebViewWidget(controller: _controller),
     );
   }

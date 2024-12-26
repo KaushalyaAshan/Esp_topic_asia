@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:just_audio/just_audio.dart';
 
+import '../../Home_screen.dart';
+import '../esp_guids.dart';
+
 class ReportScreen extends StatefulWidget {
   final List<dynamic> correctAnswers;
   final List<dynamic> selectedAnswers;
@@ -88,59 +91,66 @@ class _ReportScreenState extends State<ReportScreen> {
         body: const Center(child: Text('No questions available.')),
       );
     }
-
+    double abc=widget.marks;
+    double ans=abc/2.5;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Exam Report - ${widget.paperName}',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                blurRadius: 5.0,
-                color: Colors.black26,
-                offset: Offset(1.5, 1.5),
-              ),
-            ],
-          ),
+    appBar: AppBar(
+      leading: IconButton(
+        icon: const Icon(
+          Icons.home,
+          color: Colors.white, // Ensures the icon color is white
+          size: 28, // Slightly larger icon for emphasis
         ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blueAccent, Colors.lightBlueAccent],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                offset: Offset(0, 3),
-                blurRadius: 5.0,
-              ),
-            ],
-          ),
-        ),
-        elevation: 4,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.share, color: Colors.white),
-            onPressed: () {
-              // Share functionality here
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.download, color: Colors.white),
-            onPressed: () {
-              // Download functionality here
-            },
-          ),
-        ],
+        tooltip: 'Go to Home',
+        onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => EspGuidesScreen()),
+          );
+        },
       ),
+      title: Text(
+        'Exam Report - ${widget.paperName}',
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+          shadows: [
+            Shadow(
+              blurRadius: 5.0,
+              color: Colors.black26,
+              offset: Offset(1.5, 1.5),
+            ),
+          ],
+        ),
+      ),
+      centerTitle: true,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF1565C0), // A darker blue
+              Color(0xFF42A5F5), // A lighter blue
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              offset: Offset(0, 3),
+              blurRadius: 5.0,
+            ),
+          ],
+        ),
+      ),
+      elevation: 4,
+      actions: [
+        // Add your icons or buttons here if needed
+      ],
+    ),
 
-        body: Padding(
+    body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,9 +175,9 @@ class _ReportScreenState extends State<ReportScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      "Total Marks",
-                      style: TextStyle(
+                     Text(
+                      "Total Marks = ${widget.marks}",
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
@@ -176,8 +186,8 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${widget.marks.toStringAsFixed(1)} / Max Marks', // Display total marks with formatting
-                      style: TextStyle(
+                      'Correct Answer = ${ans.toInt()}', // Display total marks with formatting
+                      style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,

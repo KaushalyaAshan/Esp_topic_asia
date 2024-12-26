@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:lottie/lottie.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../paper_details/paper_detail_screen.dart';
@@ -10,16 +11,18 @@ class ConfirmationDialogScreen extends StatelessWidget {
   final String questionCount;
   final String duration;
   final String paperId;
- // final String userId;
+
 
   const ConfirmationDialogScreen({
     required this.paperName,
     required this.questionCount,
     required this.duration,
     required this.paperId,
-   // required this.userId,
+
+
     Key? key,
   }) : super(key: key);
+
 
   Future<int> _checkRegistration() async {
     // Get the user ID from SharedPreferences
@@ -37,14 +40,9 @@ class ConfirmationDialogScreen extends StatelessWidget {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-          print(data['payment']);
-        // Check the 'payment' value
-        // if (data['payment'] == 1) {
-        //   return true; // Payment is valid
-        // } else {
-        //   return false; // Payment is invalid
-        // }
-        return 1;//data['payment'];
+
+        print('******************** ${data['payment']}');
+        return 1;data['payment'];
       } else {
         // Log response error for debugging
         print("Error: ${response.statusCode} - ${response.reasonPhrase}");
@@ -56,28 +54,40 @@ class ConfirmationDialogScreen extends StatelessWidget {
       return -1;
     }
   }
-  // Future<bool> _checkRegistration() async {
-  //   final String userId = "unique_user_id"; // Replace with actual user ID logic
-  //   final url = Uri.parse('https://epstopik.asia/api/register');
-  //
-  //   try {
-  //     final response = await http.get(
-  //       url,
-  //       headers: {'Authorization': 'Bearer $userId'},
-  //     );
-  //
-  //     if (response.statusCode == 200) {
-  //       final data = json.decode(response.body);
-  //       // Assume the API returns { "registered": true/false }
-  //       return data['registered'] ?? false;
-  //     } else {
-  //       return false;
-  //     }
-  //   } catch (error) {
-  //     print("Error checking registration: $error");
-  //     return false;
-  //   }
-  // }
+
+  Future<String> _fetchUserDetails() async {
+    final url = Uri.parse('https://epstopik.asia/api/user-details');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString("Device_id");
+
+      if (userId == null) {
+        throw Exception('User ID not found in SharedPreferences');
+      }
+
+      final response = await http.post(
+        url,
+        body: {"user_id": userId.toString()},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['Telephone'] != null) {
+          // Assuming `sentences` is a list of strings from the API response
+          return (data['Telephone']);
+        } else {
+          throw Exception('Sentences not found in API response');
+        }
+      } else {
+        throw Exception('Failed to fetch user details');
+      }
+    } catch (e) {
+      debugPrint('Error fetching user details: $e');
+      rethrow;
+    }
+  }
+
+
   void _showRegisterMessageBox(BuildContext context) {
     showDialog(
       context: context,
@@ -86,8 +96,8 @@ class ConfirmationDialogScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade100, Colors.blueAccent],
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1565C0), Color(0xFF42A5F5)], // Updated colors
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -166,6 +176,7 @@ class ConfirmationDialogScreen extends StatelessWidget {
       ),
     );
   }
+
   Future<void> _navigateToPaperDetailScreen(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     String userId = prefs.getString("Device_id").toString();
@@ -180,55 +191,119 @@ class ConfirmationDialogScreen extends StatelessWidget {
       ),
     );
   }
-  void _showNoMoneyAlert(BuildContext context) {
+
+  void _showNoMoneyAlert(BuildContext context, String tele) {
+    // Validate and handle a potential null or empty tele value
+    String teleform = tele.isNotEmpty ? tele : 'නොදන්නා දුරකථන අංකය'; // Default message if tele is empty
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15), // Rounded corners
+            borderRadius: BorderRadius.circular(25), // Smooth rounded corners
           ),
-          backgroundColor: Colors.white, // Background color
-          title: const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 30), // Icon
-              SizedBox(width: 10),
-              Text(
-                'No Money',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black, // Title text color
-                ),
+          backgroundColor: Colors.lightBlue, // Dialog background color
+          title: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF1565C0), // A darker blue
+                  Color(0xFF42A5F5), // A lighter blue
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
+              borderRadius: BorderRadius.circular(25), // Match rounded corners
+            ),
+            padding: const EdgeInsets.all(16),
+            child: const Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.white, // Icon color
+                  size: 32,
+                ),
+                SizedBox(width: 12),
+                Text(
+                  'රැදී සිටින්න',
+                  style: TextStyle(
+                    fontSize: 20, // Adjusted font size for better balance
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white, // White text for contrast
+                  ),
+                ),
+              ],
+            ),
           ),
-          content: Text(
-            'You do not have sufficient funds to proceed.',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[800], // Subtle text color
+          content: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(16.0), // Add padding for spacing
+              decoration: BoxDecoration(
+                color: Colors.blueAccent, // Inner container background
+                borderRadius: BorderRadius.circular(15), // Rounded corners
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align text left
+                mainAxisSize: MainAxisSize.min, // Minimize unnecessary space
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 8.0), // Space between rows
+                    child: Text(
+                      'මෙම EPSTOPIC Asia ඇප් එක එක සක්‍රිය කිරීමට ඔබගේ දුරකතනයේ ශේෂය ප්‍රමාණවත් නොවේ.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500, // Semi-bold text
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      '+$teleform ඔබගේ දුරකථන අංකය ට මුදල් දමන්න. (කාඩ් එකකින් හෝ රිලෝඩ් එකක් මගින්).',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const Text(
+                    'ඉන් පසුව ස්වංක්‍රියව EPSTOPIC Asia ඇප් එක සක්‍රිය වනු ඇත.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.red, // Button background color
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10), // Button shape
-                ),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: Text(
-                  'OK',
-                  style: TextStyle(
-                    color: Colors.white, // Button text color
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: SizedBox(
+                width: double.infinity, // Make button full-width
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent, // Button color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // Round corners
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14.0), // Add vertical padding
+                  ),
+                  child: const Text(
+                    'හරි',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16, // Adjusted font size
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -238,19 +313,36 @@ class ConfirmationDialogScreen extends StatelessWidget {
       },
     );
   }
+
+
+
+
+
   void _handleStartButton(BuildContext context) async {
+
     final isRegistered = await _checkRegistration();
 
-    if (isRegistered==1) {
+
+    if (isRegistered == 1) {
       _navigateToPaperDetailScreen(context);
-    } else if (isRegistered==0) {
-      _showRegisterMessageBox(context);
-    }
-    else{
-      //Navigator.of(context).pop();
-      _showNoMoneyAlert(context);
+    } else if (isRegistered == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RegisterScreen(
+            paperName: paperName,
+            paperId: paperId,
+          ),
+        ),
+      );
+      //_showRegisterMessageBox(context);
+    } else {
+      final tele=await _fetchUserDetails();
+      print(tele);
+      _showNoMoneyAlert(context,tele);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -262,8 +354,8 @@ class ConfirmationDialogScreen extends StatelessWidget {
           ),
           child: Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade100, Colors.blueAccent],
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1565C0), Color(0xFF42A5F5)], // Updated colors
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -273,12 +365,13 @@ class ConfirmationDialogScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.play_circle_fill_rounded,
-                  size: 60,
-                  color: Colors.white,
-                ),
-
+                // Replacing static icon with Lottie animation
+                // Lottie.asset(
+                //   'assets/Animation.json', // assets/Animation.json Path to the Lottie animation file
+                //   width: 100,
+                //   height: 100,
+                //   fit: BoxFit.cover,
+                // ),
                 const SizedBox(height: 15),
                 const Text(
                   "Get Ready!",
@@ -330,10 +423,13 @@ class ConfirmationDialogScreen extends StatelessWidget {
                       },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
+                          side: const BorderSide(
+                            color: Colors.white, // Set the border color here
+                            width: 2, // Set the border width
+                          ),
                         ),
                       ),
                       child: const Text(
@@ -344,7 +440,7 @@ class ConfirmationDialogScreen extends StatelessWidget {
                           fontSize: 16,
                         ),
                       ),
-                    ),
+                    )
                   ],
                 ),
               ],
@@ -354,5 +450,8 @@ class ConfirmationDialogScreen extends StatelessWidget {
       ),
     );
   }
+  // void _handleStartButton(BuildContext context) {
+  //   // Add your logic for the Start button here
+  //   Navigator.of(context).pop(); // Example: Close the dialog
+  // }
 }
-

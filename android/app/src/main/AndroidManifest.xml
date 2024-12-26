@@ -2,7 +2,7 @@
     package="com.example.asp_topic_asia">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="asp_topic_asia"
+        android:label="EPSTOPIC Asia"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

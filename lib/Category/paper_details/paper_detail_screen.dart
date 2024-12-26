@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:just_audio/just_audio.dart';
-
+import 'package:lottie/lottie.dart';
+import '../../Home_screen.dart';
+import '../Menu bar/menu_bar.dart';
+import '../esp_guids.dart';
 class PaperDetailScreen extends StatefulWidget {
   final String paperId;
   final String paperName;
@@ -53,6 +56,7 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
     super.initState();
     fetchPaper();
   }
+
   var obj;
   Future<void> fetchPaper() async {
     final url = Uri.parse('https://epstopik.asia/api/get-paper/${widget.paperId}');
@@ -73,12 +77,11 @@ class _PaperDetailScreenState extends State<PaperDetailScreen> {
       });
     }
   }
-
   Future<void> postMarks() async {
     final url = Uri.parse('https://epstopik.asia/api/insert-mark');
     //final userId = "39"; // Replace with the actual user ID
-print(widget.userId);
-print(widget.paperId);
+    print(widget.userId);
+    print(widget.paperId);
     final Map<String, dynamic> payload = {
       "userid": widget.userId,
       "paperId": widget.paperId,
@@ -110,6 +113,12 @@ print(widget.paperId);
   }
   void _nextQuestion() async {
     if (_selectedAnswerIndex != null) {
+      if (_isPlaying) {
+        await player.stop();
+        setState(() {
+          _isPlaying = false;
+        });
+      }
       String correctAnswer = obj[0]['Questions'][_currentQuestionIndex]['correct_answer']
           .toString();
       String selectedAnswer = obj[0]['Questions'][_currentQuestionIndex]['answers'][_selectedAnswerIndex!]['no']
@@ -163,7 +172,6 @@ print(widget.paperId);
         await player.setUrl(url);
         await player.play();
       }
-
       setState(() {
         _isPlaying = !_isPlaying;
       });
@@ -182,38 +190,57 @@ print(widget.paperId);
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        backgroundColor: Colors.white,
-        title: const Column(
-          children: [
-            Icon(
-              Icons.emoji_events,
-              color: Colors.orangeAccent,
-              size: 50,
-            ),
-            SizedBox(height: 10),
-          ],
-        ),
-        content: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
-          child: Text(
-            'Your total marks: $marks%',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[800],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              backgroundColor: Colors.blueAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+          title: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF1565C0), // Darker blue
+                  Color(0xFF42A5F5), // Lighter blue
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              borderRadius: BorderRadius.circular(20),
             ),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Winning animation
+                Lottie.asset(
+                  'assets/win.json', // Path to your animation file
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                ),
+                const SizedBox(height: 15),
+                const Text(
+                  "Congratulations!",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Your total marks: $marks%',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white70,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -238,6 +265,7 @@ print(widget.paperId);
           ),
         ],
       ),
+    ))
     );
   }
 
@@ -298,20 +326,20 @@ print(widget.paperId);
           elevation: 4,
           shadowColor: Colors.black54,
           actions: [
-            IconButton(
-              icon: Icon(Icons.share),
-              color: Colors.white,
-              onPressed: () {
-                // Implement share functionality
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.save_alt),
-              color: Colors.white,
-              onPressed: () {
-                // Implement save or download functionality
-              },
-            ),
+            // IconButton(
+            //   icon: Icon(Icons.share),
+            //   color: Colors.white,
+            //   onPressed: () {
+            //     // Implement share functionality
+            //   },
+            // ),
+            // IconButton(
+            //   icon: Icon(Icons.save_alt),
+            //   color: Colors.white,
+            //   onPressed: () {
+            //     // Implement save or download functionality
+            //   },
+            // ),
           ],
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
@@ -341,54 +369,82 @@ print(widget.paperId);
     final ImageFinaly = images != null && images.isNotEmpty ? 'https://epstopik.asia/file/$images' : null;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        elevation: 6,
-        title: Text(
-          '${widget.paperName}',
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-            color: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60), // Adjust height as needed
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF1565C0), // A darker blue
+                Color(0xFF42A5F5), // A lighter blue
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(16),
+            ),
           ),
-        ),
-        centerTitle: true,
-        actions: [
-          if (audio.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: GestureDetector(
-                onTap: () => _toggleAudio(FinalAudio),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 6,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_outline,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                ),
+          child: AppBar(
+            backgroundColor: Colors.transparent, // Transparent to show gradient
+            elevation: 6,
+            title: Text(
+              '${widget.paperName}',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+                color: Colors.white,
               ),
             ),
-        ],
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(16),
+            leading: IconButton(
+              icon: const Icon(
+                Icons.home,
+                color: Colors.white, // Ensures the icon color is white
+                size: 28, // Slightly larger icon for emphasis
+              ),
+              tooltip: 'Go to Home',
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => EspGuidesScreen()),
+                );
+              },
+            ),
+            centerTitle: true,
+            actions: [
+              if (audio.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: GestureDetector(
+                    onTap: () => _toggleAudio(FinalAudio),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 6,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        _isPlaying
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_outline,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -486,47 +542,30 @@ print(widget.paperId);
             const SizedBox(height: 20),
             // Navigation Buttons for Next and Previous
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center, // Center the content horizontally
               children: [
-                if (_currentQuestionIndex > 0)
-                  ElevatedButton(
-                    onPressed: _previousQuestion,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                      backgroundColor: Colors.grey[300],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      'Previous',
-                      style: TextStyle(
-                        color: Colors.grey[800],
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
                 ElevatedButton(
                   onPressed: _isAnswerSelected ? _nextQuestion : null,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     backgroundColor: Colors.blueAccent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    fixedSize: Size(200, 50), // Set the width (200) and height (50) of the button
                   ),
                   child: const Text(
                     'Next',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      fontSize: 20,
                     ),
                   ),
                 ),
               ],
             ),
+
           ],
         ),
       ),

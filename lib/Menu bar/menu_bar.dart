@@ -6,7 +6,6 @@ import 'settings.dart';
 import 'about.dart';
 import 'profile.dart';
 
-
 class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -14,33 +13,44 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(
+          DrawerHeader(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue, Colors.red],
+                colors: [
+                  Color(0xFF1565C0), // A darker blue
+                  Color(0xFF42A5F5), // A lighter blue for a gradient effect
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start, // Align all content to the left
+              mainAxisAlignment: MainAxisAlignment.start,  // Align content to the top
               children: [
-                SizedBox(height: 1), // Space between logo and title
-                Text(
+                // Left-aligned logo
+                Image.asset(
+                  'assets/logo.png',
+                  width: 180, // Reduced width
+                  height: 50, // Reduced height
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 10), // Space between logo and title
+                const Text(
                   'Epstopik Asia', // Title of the app
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 18, // Reduced font size
                     fontWeight: FontWeight.bold,
-                  ), // Title style
+                  ),
                 ),
-                SizedBox(height: 5), // Space between title and email
-                Text(
+                const SizedBox(height: 5), // Space between title and email
+                const Text(
                   'Email: info@learneme.lk',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                  ), // Email style
+                  ),
                 ),
               ],
             ),
@@ -52,19 +62,7 @@ class AppDrawer extends StatelessWidget {
               Navigator.pop(context); // Close the drawer first
               Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) =>ProfileScreen()));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('PDF'),
-            onTap: () {
-              Navigator.pop(context); // Close the drawer first
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>PdfViewerPage(pdfUrl: 'https://example.com/sample.pdf')));
+                  MaterialPageRoute(builder: (context) => ProfileScreen()));
             },
           ),
           ListTile(
@@ -74,10 +72,21 @@ class AppDrawer extends StatelessWidget {
               Navigator.pop(context); // Close the drawer first
               Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => AboutPage()));
+                  MaterialPageRoute(builder: (context) => AboutPage()));
             },
           ),
+          // ListTile(
+          //   leading: const Icon(Icons.picture_as_pdf),
+          //   title: const Text('PDF Viewer'),
+          //   onTap: () {
+          //     Navigator.pop(context); // Close the drawer first
+          //     Navigator.push(
+          //         context,
+          //         MaterialPageRoute(
+          //             builder: (context) => PdfViewerPage(
+          //                 pdfUrl: 'http://eagri.org/eagri50/AENG252/lec01.pdf')));
+          //   },
+          // ),
           ListTile(
             leading: const Icon(Icons.privacy_tip),
             title: const Text('Privacy & Policy'),
@@ -89,10 +98,9 @@ class AppDrawer extends StatelessWidget {
                       builder: (context) => PrivacyPolicyScreen()));
             },
           ),
-
           ListTile(
             leading: const Icon(Icons.article),
-            title: const Text('Terms & ConditionsScreen'),
+            title: const Text('Terms & Conditions'),
             onTap: () {
               Navigator.pop(context); // Close the drawer first
               Navigator.push(

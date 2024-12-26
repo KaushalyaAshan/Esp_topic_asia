@@ -40,7 +40,40 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("PDF Viewer")),
+      appBar: AppBar(
+        title: const Text(
+          "PDF Viewer",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20, // Adjust font size
+            color: Colors.white, // Set text color to white
+          ),
+        ),
+        centerTitle: true, // Align the title text to the center
+        backgroundColor: Colors.transparent, // Make background transparent for gradient
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF1565C0), // A darker blue
+                Color(0xFF42A5F5), // A lighter blue
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 4, // Add a shadow for a subtle effect
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back, // Arrow icon for navigating back
+            color: Colors.white, // Set icon color to white
+          ),
+          onPressed: () {
+            Navigator.pop(context); // Navigate back to the previous screen
+          },
+        ),
+      ),
       body: localPath == null
           ? const Center(child: CircularProgressIndicator())
           : PDFView(

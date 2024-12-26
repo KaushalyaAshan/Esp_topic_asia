@@ -4,9 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:just_audio/just_audio.dart';
 import 'package:lottie/lottie.dart';
-import '../../Home_screen.dart';
-import '../Menu bar/menu_bar.dart';
-import '../esp_guids.dart';
+import '../../Homepage.dart';
 class PaperDetailScreen extends StatefulWidget {
   final String paperId;
   final String paperName;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'Home_screen.dart';
+
+import 'Homepage.dart';
+
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -39,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(seconds: 4), () {}); // Total splash duration
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
+      MaterialPageRoute(builder: (context) => EspGuidesScreen()),
     );
   }
 

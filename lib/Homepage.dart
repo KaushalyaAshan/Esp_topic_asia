@@ -2,8 +2,8 @@ import 'package:asp_topic_asia/Category/paper_details/Answer_Report_Page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For parsing JSON
-import '../Menu bar/menu_bar.dart';
-import './dialogs/confirmation_dialog_screen.dart';// Import the dialog screen
+import 'Menu bar/menu_bar.dart';
+import 'Category/dialogs/confirmation_dialog_screen.dart';// Import the dialog screen
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EspGuidesScreen extends StatefulWidget {
